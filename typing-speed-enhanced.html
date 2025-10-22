@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Typing Speed & Accuracy Tester</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        .content-wrapper {
+            display: flex;
+            gap: 30px;
+            margin-top: 20px;
+        }
+
+        .main-content {
+            flex: 1;
+            max-width: 700px;
+        }
+
+        .sidebar {
+            width: 300px;
+            min-width: 300px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+
+        .test-text {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            font-size: 18px;
+            line-height: 1.6;
+            min-height: 120px;
+            font-family: 'Courier New', monospace;
+            position: relative;
+        }
+
+        .test-text .char {
+            transition: all 0.2s ease;
+        }
+
+        .test-text .correct {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .test-text .incorrect {
+            background-color: #f8d7da;
+            color: #721c24;
+            text-decoration: underline;
+        }
+
+        .test-text .current {
+            background-color: #cce5ff;
+            border-left: 3px solid #007bff;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 50% { background-color: #cce5ff; }
+            51%, 100% { background-color: transparent; }
+        }
+
+        .input-area {
+            margin: 20px 0;
+        }
+
+        .input-area textarea {
+            width: 100%;
+            height: 120px;
+            padding: 15px;
+            font-size: 18px;
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            resize: none;
+            font-family: 'Courier New', monospace;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-area textarea:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background-color: #0056b3;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover:not(:disabled) {
+            background-color: #1e7e34;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            background-color: #c82333;
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .stat-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            border-left: 4px solid #007bff;
+        }
+
+        .stat-card h3 {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-card .value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .results {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 30px;
+            margin-top: 30px;
+            display: none;
+        }
+
+        .results.show {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .mistakes-list {
+            margin-top: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .mistake-item {
+            background: white;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            border-left: 3px solid #dc3545;
+        }
+
+        .timer {
+            text-align: center;
+            font-size: 28px;
+            font-weight: bold;
+            color: #dc3545;
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border: 2px solid #dc3545;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(220, 53, 69, 0.2);
+        }
+
+        .text-selection {
+            margin-bottom: 20px;
+        }
+
+        .text-selection select, .text-selection textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-family: inherit;
+        }
+
+        .text-selection textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: #28a745;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            border: 2px solid #e9ecef;
+        }
+
+        .live-mistakes {
+            margin-top: 20px;
+        }
+
+        .live-mistakes h3 {
+            color: #dc3545;
+            font-size: 18px;
+            margin-bottom: 15px;
+            text-align: center;
+            border-bottom: 2px solid #dc3545;
+            padding-bottom: 10px;
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .live-mistakes h3:hover {
+            background-color: rgba(220, 53, 69, 0.1);
+            border-radius: 8px;
+            padding: 10px;
+            margin: -10px 0 15px 0;
+        }
+
+        .toggle-icon {
+            font-size: 14px;
+            transition: transform 0.3s ease;
+        }
+
+        .toggle-icon.expanded {
+            transform: rotate(180deg);
+        }
+
+        .mistakes-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .mistakes-content.expanded {
+            max-height: 400px;
+        }
+
+        .mistakes-scroll {
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .live-mistake-item {
+            background: white;
+            padding: 8px;
+            margin: 5px 0;
+            border-radius: 8px;
+            border-left: 4px solid #dc3545;
+            font-size: 14px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .live-mistake-item .position {
+            font-weight: bold;
+            color: #dc3545;
+        }
+
+        .live-mistake-item .expected {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .live-mistake-item .actual {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        /* Final Results Popup */
+        .results-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.2);
+            z-index: 1000;
+            max-width: 800px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .results-popup.show {
+            display: block;
+            animation: popupIn 0.5s ease;
+        }
+
+        @keyframes popupIn {
+            from { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+            to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+            display: none;
+        }
+
+        .popup-overlay.show {
+            display: block;
+            animation: fadeInOverlay 0.5s ease;
+        }
+
+        @keyframes fadeInOverlay {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .popup-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .popup-close:hover {
+            color: #dc3545;
+        }
+
+        .final-mistakes {
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⌨️ Typing Speed & Accuracy Tester</h1>
+        
+        <div class="content-wrapper">
+            <div class="main-content">
+                <!-- Text Selection Area -->
+                <div class="text-selection">
+                    <h3>Choose Your Text:</h3>
+                    <select id="textType">
+                        <option value="custom">Enter Custom Text</option>
+                        <option value="sample1">Sample Text 1</option>
+                        <option value="sample2">Sample Text 2</option>
+                        <option value="sample3">Sample Text 3</option>
+                    </select>
+                    <textarea id="customText" placeholder="Type or paste your custom text here..."></textarea>
+                </div>
+
+                <!-- Timer Display -->
+                <div class="timer" id="timer">Ready to start!</div>
+
+                <!-- Progress Bar -->
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress"></div>
+                </div>
+
+                <!-- Test Text Display -->
+                <div class="test-text" id="testText">
+                    Select text type and click Start Test to begin!
+                </div>
+
+                <!-- Input Area -->
+                <div class="input-area">
+                    <textarea id="userInput" placeholder="Start typing here when the test begins..." disabled></textarea>
+                </div>
+
+                <!-- Controls -->
+                <div class="controls">
+                    <button id="startBtn" class="btn-primary">Start Test</button>
+                    <button id="pauseBtn" class="btn-success" disabled>Pause</button>
+                    <button id="stopBtn" class="btn-danger" disabled>Stop & Check Results</button>
+                    <button id="resetBtn" class="btn-primary">Reset</button>
+                </div>
+
+                <!-- Live Statistics -->
+                <div class="stats" id="liveStats" style="display: none;">
+                    <div class="stat-card">
+                        <h3>Words Per Minute</h3>
+                        <div class="value" id="wpm">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Accuracy</h3>
+                        <div class="value" id="accuracy">0%</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Characters Typed</h3>
+                        <div class="value" id="characters">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Mistakes</h3>
+                        <div class="value" id="mistakes">0</div>
+                    </div>
+                </div>
+
+                <!-- Results -->
+                <div class="results" id="results">
+                    <h2>📊 Test Results</h2>
+                    <div class="stats" id="finalStats"></div>
+                    <div id="mistakesList"></div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <h3>Live Statistics</h3>
+                <div class="stats" id="sidebarStats">
+                    <div class="stat-card">
+                        <h3>WPM</h3>
+                        <div class="value" id="sidebarWpm">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Accuracy</h3>
+                        <div class="value" id="sidebarAccuracy">0%</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Characters</h3>
+                        <div class="value" id="sidebarCharacters">0</div>
+                    </div>
+                </div>
+                
+                <!-- Live Mistakes Display -->
+                <div class="live-mistakes" id="liveMistakesSection">
+                    <h3 id="mistakesToggle">
+                        🔍 Live Mistakes 
+                        <span class="toggle-icon" id="toggleIcon">▼</span>
+                    </h3>
+                    <div class="mistakes-content" id="mistakesContent">
+                        <div class="mistakes-scroll" id="liveMistakesList">
+                            <div style="text-align: center; color: #666; padding: 20px;">
+                                No mistakes yet! Keep typing...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Popup Overlay -->
+    <div class="popup-overlay" id="popupOverlay"></div>
+    
+    <!-- Final Results Popup -->
+    <div class="results-popup" id="resultsPopup">
+        <button class="popup-close" id="popupClose">&times;</button>
+        <h2>🎉 Test Completed!</h2>
+        <div class="stats" id="popupFinalStats"></div>
+        <div class="final-mistakes" id="popupMistakesList"></div>
+    </div>
+
+    <script>
+        class TypingSpeedTester {
+            constructor() {
+                // Initialize core properties first
+                this.testDuration = 60; // seconds - set this first
+                this.currentText = '';
+                this.startTime = null;
+                this.isTestActive = false;
+                this.isPaused = false;
+                this.timerInterval = null;
+                this.mistakes = [];
+                this.mistakesExpanded = false; // Track if mistakes section is expanded
+                
+                this.initializeElements();
+                this.loadSampleTexts();
+                this.attachEventListeners();
+            }
+
+            initializeElements() {
+                this.textTypeSelect = document.getElementById('textType');
+                this.customTextArea = document.getElementById('customText');
+                this.timerDisplay = document.getElementById('timer');
+                this.testTextElement = document.getElementById('testText');
+                this.userInputElement = document.getElementById('userInput');
+                this.startBtn = document.getElementById('startBtn');
+                this.pauseBtn = document.getElementById('pauseBtn');
+                this.stopBtn = document.getElementById('stopBtn');
+                this.resetBtn = document.getElementById('resetBtn');
+                this.liveStats = document.getElementById('liveStats');
+                this.progressBar = document.getElementById('progress');
+                
+                // Live stats elements
+                this.wpmElement = document.getElementById('wpm');
+                this.accuracyElement = document.getElementById('accuracy');
+                this.charactersElement = document.getElementById('characters');
+                this.mistakesElement = document.getElementById('mistakes');
+                
+                // Sidebar elements
+                this.sidebarWpmElement = document.getElementById('sidebarWpm');
+                this.sidebarAccuracyElement = document.getElementById('sidebarAccuracy');
+                this.sidebarCharactersElement = document.getElementById('sidebarCharacters');
+                this.liveMistakesList = document.getElementById('liveMistakesList');
+                
+                // Collapsible mistakes elements
+                this.mistakesToggle = document.getElementById('mistakesToggle');
+                this.toggleIcon = document.getElementById('toggleIcon');
+                this.mistakesContent = document.getElementById('mistakesContent');
+                
+                // Results elements
+                this.resultsElement = document.getElementById('results');
+                this.finalStatsElement = document.getElementById('finalStats');
+                this.mistakesListElement = document.getElementById('mistakesList');
+                
+                // Popup elements
+                this.resultsPopup = document.getElementById('resultsPopup');
+                this.popupOverlay = document.getElementById('popupOverlay');
+                this.popupClose = document.getElementById('popupClose');
+                this.popupFinalStats = document.getElementById('popupFinalStats');
+                this.popupMistakesList = document.getElementById('popupMistakesList');
+            }
+
+            loadSampleTexts() {
+                this.sampleTexts = {
+                    sample1: "The quick brown fox jumps over the lazy dog. This sentence contains every letter of the alphabet and is commonly used for typing practice. It helps measure typing speed and accuracy effectively.",
+                    sample2: "Programming is the art of telling another human what one wants the computer to do. The programmer must think like a machine and communicate in a language that both humans and computers can understand perfectly.",
+                    sample3: "Technology has revolutionized the way we work, communicate, and live our daily lives. From smartphones to artificial intelligence, modern innovations continue to shape our future in ways we never imagined possible before."
+                };
+            }
+
+            attachEventListeners() {
+                this.textTypeSelect.addEventListener('change', () => this.handleTextTypeChange());
+                this.customTextArea.addEventListener('input', () => this.handleCustomTextChange());
+                this.userInputElement.addEventListener('input', () => this.handleUserInput());
+                this.startBtn.addEventListener('click', () => this.startTest());
+                this.pauseBtn.addEventListener('click', () => this.togglePause());
+                this.stopBtn.addEventListener('click', () => this.stopTest());
+                this.resetBtn.addEventListener('click', () => this.resetTest());
+                this.popupClose.addEventListener('click', () => this.closePopup());
+                this.popupOverlay.addEventListener('click', () => this.closePopup());
+                this.mistakesToggle.addEventListener('click', () => this.toggleMistakesVisibility());
+                
+                // Initialize mistakes section
+                this.initializeMistakesSection();
+            }
+
+            initializeMistakesSection() {
+                // Set initial state
+                this.mistakesExpanded = false;
+                this.mistakesContent.classList.remove('expanded');
+                this.toggleIcon.classList.remove('expanded');
+                this.toggleIcon.textContent = '▼';
+                this.updateMistakesTitle();
+            }
+
+            handleTextTypeChange() {
+                const selectedType = this.textTypeSelect.value;
+                if (selectedType === 'custom') {
+                    this.customTextArea.style.display = 'block';
+                    this.currentText = this.customTextArea.value;
+                } else {
+                    this.customTextArea.style.display = 'none';
+                    this.currentText = this.sampleTexts[selectedType] || '';
+                }
+                this.displayTestText();
+            }
+
+            handleCustomTextChange() {
+                if (this.textTypeSelect.value === 'custom') {
+                    this.currentText = this.customTextArea.value;
+                    this.displayTestText();
+                }
+            }
+
+            displayTestText() {
+                if (this.currentText) {
+                    this.testTextElement.innerHTML = this.currentText
+                        .split('')
+                        .map(char => `<span class="char">${this.escapeHtml(char)}</span>`)
+                        .join('');
+                } else {
+                    this.testTextElement.textContent = 'Select text type and click Start Test to begin!';
+                }
+            }
+
+            startTest() {
+                if (!this.currentText.trim()) {
+                    alert('Please select or enter some text to practice with!');
+                    return;
+                }
+
+                this.isTestActive = true;
+                this.isPaused = false;
+                this.startTime = Date.now();
+                this.mistakes = [];
+                
+                this.userInputElement.disabled = false;
+                this.userInputElement.value = '';
+                this.userInputElement.focus();
+                
+                this.updateButtonStates();
+                this.liveStats.style.display = 'grid';
+                this.resultsElement.classList.remove('show');
+                
+                // Reset mistakes section
+                this.mistakesExpanded = false;
+                this.mistakesContent.classList.remove('expanded');
+                this.toggleIcon.classList.remove('expanded');
+                this.toggleIcon.textContent = '▼';
+                this.updateMistakesTitle();
+                
+                this.displayTestText();
+                
+                // Ensure testDuration is set
+                if (!this.testDuration || isNaN(this.testDuration)) {
+                    this.testDuration = 60; // Default to 60 seconds
+                }
+                
+                // Initialize timer display immediately
+                this.timerDisplay.textContent = `Time remaining: ${this.formatTime(this.testDuration)}`;
+                this.startTimer();
+                this.updateLiveStats();
+            }
+
+            startTimer() {
+                // Ensure testDuration is properly set
+                if (!this.testDuration || isNaN(this.testDuration)) {
+                    this.testDuration = 60;
+                }
+                
+                let timeElapsed = 0;
+                this.timerInterval = setInterval(() => {
+                    if (!this.isPaused) {
+                        timeElapsed++;
+                        const remaining = this.testDuration - timeElapsed;
+                        
+                        if (remaining <= 0) {
+                            this.timerDisplay.textContent = 'Time remaining: 00:00';
+                            this.stopTest();
+                            return;
+                        }
+                        
+                        this.timerDisplay.textContent = `Time remaining: ${this.formatTime(remaining)}`;
+                        this.updateProgress((timeElapsed / this.testDuration) * 100);
+                    }
+                }, 1000);
+            }
+
+            togglePause() {
+                this.isPaused = !this.isPaused;
+                this.updateButtonStates();
+                
+                if (this.isPaused) {
+                    this.timerDisplay.textContent = 'PAUSED';
+                }
+            }
+
+            stopTest() {
+                this.isTestActive = false;
+                this.isPaused = false;
+                
+                if (this.timerInterval) {
+                    clearInterval(this.timerInterval);
+                    this.timerInterval = null;
+                }
+                
+                this.userInputElement.disabled = true;
+                this.updateButtonStates();
+                this.showResults();
+            }
+
+            resetTest() {
+                this.isTestActive = false;
+                this.isPaused = false;
+                
+                if (this.timerInterval) {
+                    clearInterval(this.timerInterval);
+                    this.timerInterval = null;
+                }
+                
+                this.startTime = null;
+                this.mistakes = [];
+                
+                this.userInputElement.value = '';
+                this.userInputElement.disabled = true;
+                
+                this.timerDisplay.textContent = 'Ready to start!';
+                this.liveStats.style.display = 'none';
+                this.resultsElement.classList.remove('show');
+                this.updateProgress(0);
+                this.closePopup();
+                
+                // Reset mistakes section
+                this.mistakesExpanded = false;
+                this.mistakesContent.classList.remove('expanded');
+                this.toggleIcon.classList.remove('expanded');
+                this.toggleIcon.textContent = '▼';
+                this.liveMistakesList.innerHTML = '<div style="text-align: center; color: #666; padding: 20px;">No mistakes yet! Keep typing...</div>';
+                this.updateMistakesTitle();
+                
+                // Reset sidebar stats
+                this.sidebarWpmElement.textContent = '0';
+                this.sidebarAccuracyElement.textContent = '0%';
+                this.sidebarCharactersElement.textContent = '0';
+                
+                this.displayTestText();
+                this.updateButtonStates();
+            }
+
+            handleUserInput() {
+                if (!this.isTestActive) return;
+                
+                const userInput = this.userInputElement.value;
+                this.updateVisualFeedback(userInput);
+                this.updateLiveStats();
+            }
+
+            updateVisualFeedback(userInput) {
+                const chars = this.testTextElement.querySelectorAll('.char');
+                
+                chars.forEach((charElement, index) => {
+                    charElement.className = 'char';
+                    
+                    if (index < userInput.length) {
+                        if (userInput[index] === this.currentText[index]) {
+                            charElement.classList.add('correct');
+                        } else {
+                            charElement.classList.add('incorrect');
+                        }
+                    } else if (index === userInput.length) {
+                        charElement.classList.add('current');
+                    }
+                });
+            }
+
+            updateLiveStats() {
+                if (!this.isTestActive || !this.startTime) return;
+                
+                const userInput = this.userInputElement.value;
+                const timeElapsed = (Date.now() - this.startTime) / 1000;
+                
+                // Calculate WPM
+                const words = userInput.trim().split(/\s+/).filter(word => word.length > 0).length;
+                const wpm = timeElapsed > 0 ? Math.round((words / timeElapsed) * 60) : 0;
+                
+                // Calculate mistakes and accuracy
+                const previousMistakesLength = this.mistakes.length;
+                this.mistakes = this.calculateMistakes(userInput);
+                const accuracy = this.currentText.length > 0 ? 
+                    Math.max(0, Math.round(((this.currentText.length - this.mistakes.length) / this.currentText.length) * 100)) : 0;
+                
+                // Update main stats
+                this.wpmElement.textContent = wpm;
+                this.accuracyElement.textContent = accuracy + '%';
+                this.charactersElement.textContent = userInput.length;
+                this.mistakesElement.textContent = this.mistakes.length;
+                
+                // Update sidebar stats
+                this.sidebarWpmElement.textContent = wpm;
+                this.sidebarAccuracyElement.textContent = accuracy + '%';
+                this.sidebarCharactersElement.textContent = userInput.length;
+                
+                // Always update the mistakes title to show count
+                this.updateMistakesTitle();
+                // Update live mistakes display if expanded
+                this.updateLiveMistakesDisplay();
+            }
+
+            calculateMistakes(userInput) {
+                const mistakes = [];
+                const minLength = Math.min(userInput.length, this.currentText.length);
+                
+                for (let i = 0; i < minLength; i++) {
+                    if (userInput[i] !== this.currentText[i]) {
+                        mistakes.push({
+                            position: i,
+                            expected: this.currentText[i],
+                            actual: userInput[i],
+                            context: this.currentText.substring(Math.max(0, i-5), Math.min(this.currentText.length, i+6))
+                        });
+                    }
+                }
+                
+                // Count extra characters
+                if (userInput.length > this.currentText.length) {
+                    for (let i = this.currentText.length; i < userInput.length; i++) {
+                        mistakes.push({
+                            position: i,
+                            expected: '',
+                            actual: userInput[i],
+                            context: 'End of text'
+                        });
+                    }
+                }
+                
+                return mistakes;
+            }
+
+            updateLiveMistakesDisplay() {
+                if (!this.mistakesExpanded) {
+                    // Don't update the display if not expanded
+                    return;
+                }
+
+                if (this.mistakes.length === 0) {
+                    this.liveMistakesList.innerHTML = '<div style="text-align: center; color: #666; padding: 20px;">No mistakes yet! Keep typing...</div>';
+                    return;
+                }
+
+                // Show only the latest 10 mistakes in the sidebar
+                const recentMistakes = this.mistakes.slice(-10);
+                this.liveMistakesList.innerHTML = recentMistakes.map((mistake, index) => `
+                    <div class="live-mistake-item">
+                        <div><span class="position">#${this.mistakes.length - recentMistakes.length + index + 1}</span></div>
+                        <div>Expected: <span class="expected">"${this.escapeHtml(mistake.expected || '[end]')}"</span></div>
+                        <div>Got: <span class="actual">"${this.escapeHtml(mistake.actual)}"</span></div>
+                        <div style="font-size: 12px; color: #666;">Pos: ${mistake.position + 1}</div>
+                    </div>
+                `).join('');
+            }
+
+            updateMistakesTitle() {
+                const titleText = this.mistakes.length > 0 ? 
+                    `🔍 Live Mistakes (${this.mistakes.length})` : 
+                    '🔍 Live Mistakes';
+                
+                // Update the title text while preserving the toggle icon structure
+                const titleNodes = this.mistakesToggle.childNodes;
+                if (titleNodes.length >= 3) {
+                    // There should be text node, toggle icon, then another text node
+                    titleNodes[0].textContent = titleText + ' ';
+                } else {
+                    // Fallback: recreate the structure
+                    const currentIcon = this.toggleIcon ? this.toggleIcon.textContent : '▼';
+                    this.mistakesToggle.innerHTML = `
+                        ${titleText} 
+                        <span class="toggle-icon" id="toggleIcon">${currentIcon}</span>
+                    `;
+                    // Re-get the toggle icon reference
+                    this.toggleIcon = document.getElementById('toggleIcon');
+                }
+            }
+
+            toggleMistakesVisibility() {
+                this.mistakesExpanded = !this.mistakesExpanded;
+                
+                if (this.mistakesExpanded) {
+                    this.mistakesContent.classList.add('expanded');
+                    this.toggleIcon.textContent = '▲';
+                    // Update the display when expanded
+                    this.updateLiveMistakesDisplay();
+                } else {
+                    this.mistakesContent.classList.remove('expanded');
+                    this.toggleIcon.textContent = '▼';
+                }
+            }
+
+            showResults() {
+                const userInput = this.userInputElement.value;
+                const timeElapsed = (Date.now() - this.startTime) / 1000;
+                const words = userInput.trim().split(/\s+/).filter(word => word.length > 0).length;
+                const wpm = timeElapsed > 0 ? Math.round((words / timeElapsed) * 60) : 0;
+                
+                const mistakes = this.calculateMistakes(userInput);
+                const accuracy = this.currentText.length > 0 ? 
+                    Math.max(0, Math.round(((this.currentText.length - mistakes.length) / this.currentText.length) * 100)) : 0;
+                
+                // Display final stats in regular results section
+                this.finalStatsElement.innerHTML = `
+                    <div class="stat-card">
+                        <h3>Words Per Minute</h3>
+                        <div class="value">${wpm}</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Accuracy</h3>
+                        <div class="value">${accuracy}%</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Characters Typed</h3>
+                        <div class="value">${userInput.length}</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Total Mistakes</h3>
+                        <div class="value">${mistakes.length}</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Time Taken</h3>
+                        <div class="value">${this.formatTime(Math.round(timeElapsed))}</div>
+                    </div>
+                `;
+                
+                // Clear the mistakes list from bottom results section
+                this.mistakesListElement.innerHTML = '';
+                
+                this.resultsElement.classList.add('show');
+                
+                // Show popup with results
+                this.showResultsPopup(wpm, accuracy, userInput.length, mistakes.length, timeElapsed, mistakes);
+            }
+
+            showResultsPopup(wpm, accuracy, charactersTyped, totalMistakes, timeElapsed, mistakes) {
+                // Update popup stats
+                this.popupFinalStats.innerHTML = `
+                    <div class="stat-card">
+                        <h3>Words Per Minute</h3>
+                        <div class="value">${wpm}</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Accuracy</h3>
+                        <div class="value">${accuracy}%</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Characters Typed</h3>
+                        <div class="value">${charactersTyped}</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Total Mistakes</h3>
+                        <div class="value">${totalMistakes}</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Time Taken</h3>
+                        <div class="value">${this.formatTime(Math.round(timeElapsed))}</div>
+                    </div>
+                `;
+                
+                // Update popup mistakes list
+                if (mistakes.length > 0) {
+                    this.popupMistakesList.innerHTML = `
+                        <h3>🔍 All Mistakes (${mistakes.length} total)</h3>
+                        <div class="mistakes-list">
+                            ${mistakes.map((mistake, index) => `
+                                <div class="mistake-item">
+                                    <strong>Mistake #${index + 1}</strong> at position ${mistake.position + 1}<br>
+                                    Expected: "${this.escapeHtml(mistake.expected || '[end of text]')}" 
+                                    Got: "${this.escapeHtml(mistake.actual)}"<br>
+                                    Context: "...${this.escapeHtml(mistake.context)}..."
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                } else {
+                    this.popupMistakesList.innerHTML = '<h3>🎉 Perfect! No mistakes detected!</h3>';
+                }
+                
+                // Show popup
+                this.popupOverlay.classList.add('show');
+                this.resultsPopup.classList.add('show');
+            }
+
+            closePopup() {
+                this.popupOverlay.classList.remove('show');
+                this.resultsPopup.classList.remove('show');
+            }
+
+            updateButtonStates() {
+                this.startBtn.disabled = this.isTestActive;
+                this.pauseBtn.disabled = !this.isTestActive;
+                this.stopBtn.disabled = !this.isTestActive;
+            }
+
+            updateProgress(percentage) {
+                this.progressBar.style.width = Math.min(100, Math.max(0, percentage)) + '%';
+            }
+
+            formatTime(seconds) {
+                // Ensure seconds is a valid number
+                const numSeconds = Number(seconds);
+                if (isNaN(numSeconds) || numSeconds < 0) {
+                    return '00:00';
+                }
+                const mins = Math.floor(numSeconds / 60);
+                const secs = numSeconds % 60;
+                return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            }
+
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', () => {
+            new TypingSpeedTester();
+        });
+    </script>
+</body>
+</html>
