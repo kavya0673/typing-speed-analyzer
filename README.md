@@ -1,6 +1,8 @@
 #  Typing Speed & Accuracy Tester
 
 A modern, responsive web application that tests your typing speed and accuracy with real-time feedback and detailed mistake analysis.
+<img width="1349" height="882" alt="Screenshot 2025-10-22 101854" src="https://github.com/user-attachments/assets/8ab5026a-f8b7-454c-aa42-da216eda6ac2" />
+
 
 ## Features
 
@@ -57,4 +59,5 @@ This project is open source and available under the MIT License.
 ---
 
 **Happy Typing!** 
+
 
